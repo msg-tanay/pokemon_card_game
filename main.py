@@ -1,7 +1,7 @@
-import numpy as np
 import pandas as pd
 
 pokemon_data = pd.read_csv('pokemon_data.csv')
+pokemon_data['Type'] = pokemon_data['Type 1'] + ', ' + pokemon_data['Type 2']
 
 # Function to deal 6 Pokémon to each player
 def deal_pokemon(data):
@@ -13,7 +13,9 @@ computer_pokemon = deal_pokemon(pokemon_data)
 
 # Strengths and weaknesses of each type
 pokemon_type_data = pd.read_csv('pokemon_type_table.csv')
-print(pokemon_type_data)
+pokemon_type_data_row = pokemon_type_data[pokemon_type_data['Type'] == 'Grass']
+print(pokemon_type_data_row['Strong Against'])
+
 # Function to determine the winner of a round
 def determine_winner(player_pokemon, computer_pokemon, chosen_attribute):
     if chosen_attribute in ['Power', 'HP', 'Attack', 'Defense', 'Sp. Atk', 'Sp. Def']:
@@ -30,9 +32,16 @@ def determine_winner(player_pokemon, computer_pokemon, chosen_attribute):
             return 2
         else:
             return 0
-    elif chosen_attribute in ['Type 1', 'Type 2']:
+    elif chosen_attribute == 'Type':
         if player_pokemon[chosen_attribute] == computer_pokemon[chosen_attribute]:
             return 0
+        else:
+            player_type1 = player_pokemon['Type 1']
+            computer_type1 = computer_pokemon['Type 1']
+            player_type2 = player_pokemon['Type 2']
+            computer_type2 = computer_pokemon['Type 2']
+            pokemon_type_data_row = pokemon_type_data[player_type1]
+        
         
             
 
