@@ -11,6 +11,9 @@ def deal_pokemon(data):
 player_pokemon = deal_pokemon(pokemon_data)
 computer_pokemon = deal_pokemon(pokemon_data)
 
+# Strengths and weaknesses of each type
+pokemon_type_data = pd.read_csv('pokemon_type_table.csv')
+print(pokemon_type_data)
 # Function to determine the winner of a round
 def determine_winner(player_pokemon, computer_pokemon, chosen_attribute):
     if chosen_attribute in ['Power', 'HP', 'Attack', 'Defense', 'Sp. Atk', 'Sp. Def']:
@@ -20,6 +23,18 @@ def determine_winner(player_pokemon, computer_pokemon, chosen_attribute):
             return 2
         else:
             return 0
+    elif chosen_attribute == 'Legendary':
+        if player_pokemon[chosen_attribute] == True and computer_pokemon[chosen_attribute] == False:
+            return 1
+        elif player_pokemon[chosen_attribute] == False and computer_pokemon[chosen_attribute] == True:
+            return 2
+        else:
+            return 0
+    elif chosen_attribute in ['Type 1', 'Type 2']:
+        if player_pokemon[chosen_attribute] == computer_pokemon[chosen_attribute]:
+            return 0
+        
+            
 
 # Game loop
 player_remaining = player_pokemon.copy()
