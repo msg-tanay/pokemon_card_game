@@ -1,4 +1,5 @@
 import pandas as pd
+import random
 
 # Load Pokémon data
 pokemon_data = pd.read_csv('pokemon_data.csv')
@@ -81,46 +82,63 @@ turn = 0
 while len(player_remaining) > 0 and len(computer_remaining) > 0:
     print(f"Turn {turn + 1}")
     # Each player places a Pokémon onto the battleground
-    player_active = player_remaining.iloc[0]
-    computer_active = computer_remaining.iloc[0]
-    
-    print("Player 1 Active Pokémon:", player_active['Name'])
-    print("Player 2 Active Pokémon:", computer_active['Name'])
-    
+    while True:
+        print("Player remaining Pokémon:", player_remaining['Name'].values)
+        player_active_name = input("Choose a Pokémon to place on the battleground: ")
+        if player_active_name not in player_remaining['Name'].values:
+            print("You don't have that Pokémon. Please choose one of your Pokémon.")
+            continue
+        else:
+            break
+
+    player_active = player_remaining[player_remaining['Name'] == player_active_name].iloc[0]
+    computer_active = computer_remaining.sample(1).iloc[0]
+
+    print("Player Active Pokémon:", player_active['Name'])
+    print("Computer Active Pokémon:", computer_active['Name'])
+
     # Player with the highest speed chooses the attribute
     if player_active['Speed'] > computer_active['Speed']:
-        choosing_player = 1
+        choosing_player = 'Player'
     else:
-        choosing_player = 2
-    
-    print(f"Player {choosing_player} chooses the attribute to compare.")
-    
+        choosing_player = 'Computer'
+
+    print(f"{choosing_player} chooses the attribute to compare.")
+
     # For simplicity, let's assume they always choose 'Attack'
-    chosen_attribute = input("Choose an attribute to compare (HP, Attack, Defense, Sp. Atk, Sp. Def, Legendary, Type): ")
-    
+    if choosing_player == 'Player':
+        while True:
+            chosen_attribute = input("Choose an attribute to compare (HP, Attack, Defense, Sp. Atk, Sp. Def, Legendary, Type): ")
+            if chosen_attribute in ['HP', 'Attack', 'Defense', 'Sp. Atk', 'Sp. Def', 'Legendary', 'Type']:
+                break
+            else:
+                print("Invalid attribute. Please choose again.")
+    else:
+        chosen_attribute = random.choice(['HP', 'Attack', 'Defense', 'Sp. Atk', 'Sp. Def', 'Legendary', 'Type'])
+
     print(f"Chosen Attribute: {chosen_attribute}")
-    
+
     winner = determine_winner(player_active, computer_active, chosen_attribute)
-    
+
     if winner == 1:
-        print("Player 1 wins the round.")
-        computer_remaining = computer_remaining.iloc[1:].reset_index(drop=True)
+        print("Player wins the round.")
+        computer_remaining = computer_remaining.drop(computer_remaining.index[0]).reset_index(drop=True)
     elif winner == 2:
-        print("Player 2 wins the round.")
-        player_remaining = player_remaining.iloc[1:].reset_index(drop=True)
+        print("Computer wins the round.")
+        player_remaining = player_remaining.drop(player_remaining[player_remaining['Name'] == player_active_name].index).reset_index(drop=True)
     else:
         print("It's a tie.")
-    
-    print(f"Player 1 remaining Pokémon: {len(player_remaining)}")
-    print(f"Player 2 remaining Pokémon: {len(computer_remaining)}")
-    
+
+    print(f"Player remaining Pokémon: {len(player_remaining)}")
+    print(f"Computer remaining Pokémon: {len(computer_remaining)}")
+
     turn += 1
     print("\n")
 
 # Determine the final winner
-if len(player_remaining) == 0:
-    print("Player 2 wins the game!")
-elif len(computer_remaining) == 0:
-    print("Player 1 wins the game!")
+if len(player_remaining) == 0 and len(computer_remaining) != 0:
+    print("Computer wins the game!")
+elif len(computer_remaining) == 0 and len(player_remaining) != 0:
+    print("Player wins the game!")
 else:
     print("The game is a draw.")
