@@ -1,5 +1,6 @@
 import pandas as pd
 
+# Load Pokémon data
 pokemon_data = pd.read_csv('pokemon_data.csv')
 pokemon_data['Type'] = pokemon_data['Type 1'] + ', ' + pokemon_data['Type 2']
 
@@ -11,12 +12,47 @@ def deal_pokemon(data):
 player_pokemon = deal_pokemon(pokemon_data)
 computer_pokemon = deal_pokemon(pokemon_data)
 
-# Strengths and weaknesses of each type
+# Load strengths and weaknesses of each type
 pokemon_type_data = pd.read_csv('pokemon_type_table.csv')
-pokemon_type_data_row = pokemon_type_data[pokemon_type_data['Type'] == 'Grass']
-print(pokemon_type_data_row['Strong Against'])
 
-# Function to determine the winner of a round
+def get_type_effectiveness(pokemon_type, effectiveness_data):
+    row = effectiveness_data[effectiveness_data['Type'] == pokemon_type].iloc[0]
+    return {
+        'Strong Against': row['Strong Against'].split(', '),
+        'Weak Against': row['Weak Against'].split(', '),
+        'Resistant To': row['Resistant To'].split(', '),
+        'Vulnerable To': row['Vulnerable To'].split(', ')
+    }
+
+def calculate_score(player_types, computer_types, effectiveness_data):
+    def score_effectiveness(player_type, computer_type):
+        score = 0
+        effectiveness = get_type_effectiveness(player_type, effectiveness_data)
+
+        if computer_type in effectiveness['Strong Against']:
+            score += 1.5
+        elif computer_type in effectiveness['Weak Against']:
+            score += 0.5
+        else:
+            score += 1
+
+        if computer_type in effectiveness['Resistant To']:
+            score -= 0.5
+        elif computer_type in effectiveness['Vulnerable To']:
+            score -= 1.5
+        else:
+            score -= 1
+
+        return score
+
+    score = 0
+    for pt in player_types:
+        for ct in computer_types:
+            score += score_effectiveness(pt, ct)
+            score -= score_effectiveness(ct, pt)
+
+    return 1 if score > 0 else 2 if score < 0 else 0
+
 def determine_winner(player_pokemon, computer_pokemon, chosen_attribute):
     if chosen_attribute in ['Power', 'HP', 'Attack', 'Defense', 'Sp. Atk', 'Sp. Def']:
         if player_pokemon[chosen_attribute] > computer_pokemon[chosen_attribute]:
@@ -33,17 +69,9 @@ def determine_winner(player_pokemon, computer_pokemon, chosen_attribute):
         else:
             return 0
     elif chosen_attribute == 'Type':
-        if player_pokemon[chosen_attribute] == computer_pokemon[chosen_attribute]:
-            return 0
-        else:
-            player_type1 = player_pokemon['Type 1']
-            computer_type1 = computer_pokemon['Type 1']
-            player_type2 = player_pokemon['Type 2']
-            computer_type2 = computer_pokemon['Type 2']
-            pokemon_type_data_row = pokemon_type_data[player_type1]
-        
-        
-            
+        player_types = [player_pokemon['Type 1'], player_pokemon['Type 2']]
+        computer_types = [computer_pokemon['Type 1'], computer_pokemon['Type 2']]
+        return calculate_score(player_types, computer_types, pokemon_type_data)
 
 # Game loop
 player_remaining = player_pokemon.copy()
@@ -68,7 +96,7 @@ while len(player_remaining) > 0 and len(computer_remaining) > 0:
     print(f"Player {choosing_player} chooses the attribute to compare.")
     
     # For simplicity, let's assume they always choose 'Attack'
-    chosen_attribute = 'Attack'
+    chosen_attribute = input("Choose an attribute to compare (HP, Attack, Defense, Sp. Atk, Sp. Def, Legendary, Type): ")
     
     print(f"Chosen Attribute: {chosen_attribute}")
     
